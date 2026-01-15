@@ -1,4 +1,10 @@
-export const accounts = [
+interface Accounts {
+  id: number;
+  username: string;
+  funds: number;
+}
+
+const accounts: Accounts[] = [
   {
     id: 1,
     username: "Omar",
@@ -15,3 +21,6 @@ export const accounts = [
     funds: 100,
   },
 ];
+
+export default Accounts;
+export { accounts };
