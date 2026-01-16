@@ -1,4 +1,4 @@
-import express, { Response, Request } from "express";
+import express, { Response, Request, response } from "express";
 import Accounts from "../../models/Accounts";
 
 const app = express();
@@ -55,4 +55,58 @@ const deleteAccount = async (req: Request, res: Response) => {
   }
 };
 
-export { getAllacounts, addAccount, getOneAccount, deleteAccount };
+const updateAccount = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const account = await Accounts.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+    res.status(202).json(account);
+  } catch (error) {
+    res.status(500).json({ errorMsg: error });
+  }
+};
+
+const getOneAccountByUsername = async (req: Request, res: Response) => {
+  try {
+    const { username } = req.params;
+    const { currency } = req.query;
+    console.log(username);
+    const account = await Accounts.findOne({ username: username });
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+    const exchangeRates: { [key: string]: number } = {
+      USD: 3.25,
+      KWD: 1,
+      EUR: 2.8,
+      JPY: 512.69,
+    };
+    if (currency && typeof currency === "string") {
+      const rate = exchangeRates[currency.toUpperCase()];
+      if (rate) {
+        const converteFunds = account.funds * rate;
+        return res.status(200).json({
+          ...account.toObject(),
+          funds: converteFunds,
+          currency: currency.toUpperCase(),
+        });
+      }
+    }
+    res.status(200).json(account);
+  } catch (error) {
+    res.status(500).json({ errorMsg: error });
+  }
+};
+
+export {
+  getAllacounts,
+  addAccount,
+  getOneAccount,
+  deleteAccount,
+  updateAccount,
+  getOneAccountByUsername,
+};
