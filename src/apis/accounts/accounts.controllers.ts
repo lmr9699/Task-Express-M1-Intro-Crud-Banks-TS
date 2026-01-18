@@ -5,7 +5,8 @@ const app = express();
 
 const getAllacounts = async (req: Request, res: Response) => {
   try {
-    const allAccounts = await Accounts.find();
+    const allAccounts = await Accounts.find().select('-createdAt -updatedAt')
+     ;
     res.status(200).json({ message: "Found all accounts", data: allAccounts });
   } catch (error) {
     res.status(500).json({ errorMsg: error });
@@ -101,6 +102,28 @@ const getOneAccountByUsername = async (req: Request, res: Response) => {
     res.status(500).json({ errorMsg: error });
   }
 };
+const getVipAccounts = async (req: Request, res: Response) => {
+  try {
+    const { amount } = req.query
+    const minAmount = Number (amount) 
+
+    if (!amount || isNaN(minAmount) ){
+      return res.status(400).json({
+        message: "Please provide a valid amount. Example: /vip?amont=3000"
+      })
+    }
+
+    const vipAccounts = await Accounts.find( { funds: { $gt: minAmount } } )
+    .select('-createdAt -updatedAt')
+     ;
+    res.status(200).json({ 
+      message: `VIP accounts (funds > ${minAmount})`,
+      count: vipAccounts.length,
+      data: vipAccounts });
+  } catch (error) {
+    res.status(500).json({ errorMsg: error });
+  }
+};
 
 export {
   getAllacounts,
@@ -109,4 +132,5 @@ export {
   deleteAccount,
   updateAccount,
   getOneAccountByUsername,
+  getVipAccounts,
 };
